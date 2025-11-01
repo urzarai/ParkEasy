@@ -1,2 +1,0 @@
-# ParkEasy
-Smart Parking Finder

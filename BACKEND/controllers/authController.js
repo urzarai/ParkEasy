@@ -1,45 +1,83 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import User from "../models/User.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-exports.signup = async (req, res) => {
-  const { name, mobile, empId, email, password } = req.body;
-  if (email === process.env.ADMIN_EMAIL)
-    return res.status(403).json({ msg: "Cannot sign up as admin" });
-  let user = await User.findOne({ email });
-  if (user) return res.status(400).json({ msg: "User already exists" });
-  const hashed = await bcrypt.hash(password, 10);
-  user = new User({ name, mobile, empId, email, password: hashed });
-  await user.save();
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "8h" });
-  res.json({ token });
-};
+// ===== Signup (User Only) =====
+export const signup = async (req, res) => {
+  try {
+    const { name, email, password, mobile, empId } = req.body;
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-  let user = await User.findOne({ email });
-  if (!user && email === process.env.ADMIN_EMAIL) {
-    user = new User({
-      name: "Admin",
-      mobile: "0000000000",
-      empId: "ADMIN1",
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
-      isAdmin: true
+    if (req.body.role === "admin") {
+      return res.status(403).json({ message: "Cannot sign up as admin" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "User already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      mobile,
+      empId,
+      role: "user",
     });
-    await user.save();
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    });
+  } catch (err) {
+    console.error("Signup Error:", err);
+    res.status(500).json({ message: "Server error" });
   }
-  if (!user) return res.status(400).json({ msg: "Invalid credentials" });
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "8h" });
-  res.json({ token, isAdmin: user.isAdmin });
 };
 
-exports.profile = (req, res) => {
-  res.json(req.user);
+// ===== Login (User & Admin) =====
+export const login = async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+    if (!email || !password || !role)
+      return res.status(400).json({ message: "Please provide all fields" });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Invalid email or password" });
+
+    if (user.role !== role)
+      return res.status(403).json({ message: `You are not authorized as ${role}` });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    });
+  } catch (err) {
+    console.error("Login Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-exports.logout = (req, res) => {
-  res.json({ msg: "Logged out" });
+// ===== Get Profile =====
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error while fetching profile" });
+  }
 };

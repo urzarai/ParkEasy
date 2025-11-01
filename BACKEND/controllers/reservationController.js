@@ -1,36 +1,33 @@
-const AcademicBuilding = require('../models/AcademicBuilding');
-const ParkingSpot = require('../models/ParkingSpot');
-const Reservation = require('../models/Reservation');
-
-// Get all buildings
-exports.getBuildings = async (req, res) => {
-  const bldgs = await AcademicBuilding.find();
-  res.json(bldgs);
-};
-
-// Get spots for specific building
-exports.getSpotsForBuilding = async (req, res) => {
-  const spots = await ParkingSpot.find({ building: req.params.buildingId }).populate({
-    path: 'reservations',
-    populate: { path: 'user', select: 'name email' }
-  });
-  res.json(spots);
-};
+import Reservation from "../models/Reservation.js";
+import Spot from "../models/Spot.js";
 
 // Reserve a spot
-exports.reserveSpot = async (req, res) => {
-  const { spotId, fromTime, toTime } = req.body;
-  const spot = await ParkingSpot.findById(spotId).populate('reservations');
-  const conflict = spot.reservations.some(r =>
-    (new Date(fromTime) < r.toTime && new Date(toTime) > r.fromTime)
-  );
-  if (conflict) return res.status(400).json({ msg: "Time slot already booked" });
+export const reserveSpot = async (req, res) => {
+  const { from, to } = req.body;
+  const { spotId } = req.params;
+
+  const spot = await Spot.findById(spotId);
+  if (!spot) return res.status(404).json({ message: "Spot not found" });
+
   const reservation = await Reservation.create({
-    spot: spotId,
-    user: req.user._id,
-    fromTime, toTime
+    user: req.user.id,
+    spot: spot._id,
+    from,
+    to,
   });
-  spot.reservations.push(reservation._id);
+
+  spot.isAvailable = false;
   await spot.save();
-  res.json(reservation);
+
+  res.status(201).json({ message: "Spot reserved successfully", reservation });
+};
+
+// Get reservations for a building
+export const getReservationsByBuilding = async (req, res) => {
+  const reservations = await Reservation.find()
+    .populate("user", "name")
+    .populate("spot", "spotNumber")
+    .exec();
+
+  res.json(reservations);
 };

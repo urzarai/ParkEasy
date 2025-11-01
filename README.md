@@ -2,7 +2,7 @@ ParkEasy: Smart Parking Finder (Frontend)
 
 This repository contains the modular frontend application for the ParkEasy Smart Parking Finder System. It is a user-interactive dashboard built using pure HTML, CSS (Tailwind CSS), and Vanilla JavaScript to simulate the core functions of a modern parking reservation system.
 
-✨ Key Features
+--> Key Features
 
 The application provides a smooth, responsive user experience across five main pages:
 
@@ -26,7 +26,7 @@ Allows users to cancel a booking using a confirmation modal.
 
 Simulated Backend: All data fetching and state management (login, booking, cancellation) are handled locally within script.js to demonstrate frontend logic without a live API connection.
 
-🏗️ Project Structure
+-->Project Structure
 
 The project follows a clean, modular structure for easy navigation and maintenance:
 
@@ -45,7 +45,7 @@ smart-parking-frontend/
 └── assets/             # Reserved for future static assets (logos, custom icons, images).
 
 
-🛠️ Technologies Used
+--. Technologies Used
 
 HTML5: Application structure.
 
@@ -55,7 +55,7 @@ Tailwind CSS: Utility-first framework for responsive design and modern styling.
 
 Font Awesome: For all icons used across the dashboard (e.g., parking, search, logout).
 
-🚀 Getting Started
+->Getting Started
 
 Since this is a static frontend application, no complex build process or server is required.
 

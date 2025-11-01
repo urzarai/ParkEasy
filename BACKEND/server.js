@@ -22,6 +22,12 @@ app.use("/api/buildings", buildingRoutes);
 app.use("/api/spots", spotRoutes);
 app.use("/api/reservations", reservationRoutes);
 
+
+app.get("/", (req, res) => {
+  res.send("✅ Server is running and routes are active");
+});
+
+
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)

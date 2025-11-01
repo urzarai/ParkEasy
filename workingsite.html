@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking Finder</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* Custom styles for colors and fonts */
+        :root {
+            --primary-color: #3b82f6; /* Blue-500 */
+            --success-color: #10b981; /* Green-500 */
+            --danger-color: #ef4444;  /* Red-500 */
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .slot-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#3b82f6',
+                        'success': '#10b981',
+                        'danger': '#ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div id="app" class="w-full max-w-4xl p-4 md:p-8">
+        <!-- Application content will be rendered here -->
+    </div>
+
+    <script>
+        // --- Global State and Utilities ---
+        const APP_ID = 'smart-parking-app';
+        const STORAGE_KEY = `${APP_ID}-username`;
+        const USER_ID = 'user-001'; // Simulated user ID
+
+        // Simulated Backend Data
+        let parkingSlots = [
+            { id: 1, name: "A-1", isAvailable: true },
+            { id: 2, name: "A-2", isAvailable: false },
+            { id: 3, name: "B-1", isAvailable: true },
+            { id: 4, name: "B-2", isAvailable: true },
+            { id: 5, name: "C-1", isAvailable: false },
+            { id: 6, name: "C-2", isAvailable: true },
+            { id: 7, name: "D-1", isAvailable: true },
+            { id: 8, name: "D-2", isAvailable: false },
+        ];
+        
+        let userBookings = [
+            { id: 101, slotId: 3, slotName: "B-1", startTime: new Date(Date.now() - 3600000).toISOString() }, // 1 hour ago
+            { id: 102, slotId: 6, slotName: "C-2", startTime: new Date().toISOString() },
+        ];
+
+        // --- View Rendering Logic ---
+
+        /**
+         * Generic UI message box instead of alert/confirm
+         * @param {string} message 
+         * @param {boolean} isConfirmation 
+         * @returns {Promise<boolean>}
+         */
+        function showMessage(message, isConfirmation = false) {
+            return new Promise(resolve => {
+                const existingModal = document.getElementById('ui-modal');
+                if (existingModal) existingModal.remove();
+
+                const modalHtml = `
+                    <div id="ui-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300">
+                        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm">
+                            <h3 class="text-xl font-bold mb-4 text-primary">${isConfirmation ? 'Confirmation' : 'Notification'}</h3>
+                            <p class="text-gray-700 mb-6">${message}</p>
+                            <div class="flex justify-end space-x-3">
+                                ${isConfirmation ? 
+                                    // Removed inline onclick and added ID for listener attachment
+                                    `<button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition duration-150">Cancel</button>` : ''}
+                                <!-- Removed inline onclick and added ID for listener attachment -->
+                                <button id="modal-ok" class="px-4 py-2 text-sm font-medium text-white ${isConfirmation ? 'bg-success hover:bg-green-700' : 'bg-primary hover:bg-blue-700'} rounded-lg transition duration-150">${isConfirmation ? 'OK' : 'Close'}</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                // --- FIX: Attach listeners inside the promise closure ---
+                const actionHandler = (result) => {
+                    document.getElementById('ui-modal').remove();
+                    resolve(result);
+                };
+
+                document.getElementById('modal-ok').addEventListener('click', () => actionHandler(true));
+                
+                if (isConfirmation) {
+                    document.getElementById('modal-cancel').addEventListener('click', () => actionHandler(false));
+                }
+                // --- END FIX ---
+            });
+        }
+
+        /**
+         * Switches the application content to the requested page.
+         * @param {string} pageName 
+         */
+        function renderPage(pageName) {
+            const app = document.getElementById('app');
+            let contentHtml = '';
+
+            switch (pageName) {
+                case 'login':
+                    contentHtml = getLoginHtml();
+                    break;
+                case 'dashboard':
+                    // Check if user is logged in before rendering dashboard
+                    if (!localStorage.getItem(STORAGE_KEY)) {
+                        return renderPage('login');
+                    }
+                    contentHtml = getDashboardHtml();
+                    break;
+                case 'slots':
+                    contentHtml = getSlotsHtml();
+                    break;
+                case 'bookings':
+                    contentHtml = getBookingsHtml();
+                    break;
+                default:
+                    contentHtml = `<div class="p-6 text-center text-red-500">Page not found.</div>`;
+            }
+
+            app.innerHTML = contentHtml;
+
+            // Run page-specific setup functions after rendering
+            if (pageName === 'slots') {
+                loadSlots();
+            } else if (pageName === 'bookings') {
+                loadMyBookings();
+            } else if (pageName === 'dashboard') {
+                document.getElementById('greeting').textContent = 'Welcome, ' + (localStorage.getItem(STORAGE_KEY) || 'Guest') + '!';
+            }
+        }
+
+        // --- Page HTML Templates ---
+
+        function getLoginHtml() {
+            return `
+                <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-sm mx-auto">
+                    <h2 class="text-3xl font-extrabold text-center mb-6 text-primary">
+                        <i class="fas fa-parking mr-2"></i> Smart Parking
+                    </h2>
+                    
+                    <div class="flex border-b border-gray-200 mb-6">
+                        <button id="login-tab" onclick="toggleAuth(true)" class="flex-1 py-2 text-center font-medium ${localStorage.getItem('isRegisterMode') !== 'true' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'} transition duration-200">Login</button>
+                        <button id="register-tab" onclick="toggleAuth(false)" class="flex-1 py-2 text-center font-medium ${localStorage.getItem('isRegisterMode') === 'true' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'} transition duration-200">Register</button>
+                    </div>
+
+                    <form onsubmit="handleAuth(event, localStorage.getItem('isRegisterMode') === 'true')" id="auth-form">
+                        <div class="mb-4">
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                            <input type="text" id="username" name="username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="password" name="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition" required>
+                        </div>
+                        <button type="submit" class="w-full py-3 rounded-lg text-white font-semibold transition duration-200 
+                            ${localStorage.getItem('isRegisterMode') === 'true' ? 'bg-success hover:bg-green-700' : 'bg-primary hover:bg-blue-700'}">
+                            <i class="fas ${localStorage.getItem('isRegisterMode') === 'true' ? 'fa-user-plus' : 'fa-sign-in-alt'} mr-2"></i> 
+                            ${localStorage.getItem('isRegisterMode') === 'true' ? 'Register' : 'Login'}
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+
+        function getDashboardHtml() {
+            const username = localStorage.getItem(STORAGE_KEY) || 'User';
+            return `
+                <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl mx-auto">
+                    <h1 class="text-4xl font-extrabold mb-4 text-primary">
+                        <i class="fas fa-chart-line mr-2"></i> Dashboard
+                    </h1>
+                    
+                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-8">
+                        <h2 class="text-2xl font-semibold text-gray-800" id="greeting">Welcome, ${username}!</h2>
+                        <p class="text-blue-700">Manage your parking reservations and find available spots.</p>
+                        <p class="text-xs mt-2 text-gray-500">User ID: ${USER_ID}</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Find Parking Card -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 border-t-4 border-primary cursor-pointer" onclick="renderPage('slots')">
+                            <i class="fas fa-search-location fa-3x text-primary mb-3"></i>
+                            <h3 class="text-xl font-bold mb-2">Find Parking</h3>
+                            <p class="text-gray-600 mb-4">View real-time availability of parking slots and book your spot instantly.</p>
+                            <button class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-car mr-2"></i> Find Spot
+                            </button>
+                        </div>
+
+                        <!-- My Bookings Card -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 border-t-4 border-success cursor-pointer" onclick="renderPage('bookings')">
+                            <i class="fas fa-calendar-alt fa-3x text-success mb-3"></i>
+                            <h3 class="text-xl font-bold mb-2">My Bookings</h3>
+                            <p class="text-gray-600 mb-4">Review your active and past reservations, or cancel a current booking.</p>
+                            <button class="w-full py-2 bg-success text-white rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-receipt mr-2"></i> View Bookings
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-10">
+                        <button class="px-6 py-2 border border-danger text-danger rounded-lg hover:bg-red-50 transition" onclick="logout()">
+                            <i class="fas fa-door-open mr-2"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getSlotsHtml() {
+            return `
+                <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h1 class="text-3xl font-extrabold text-primary">
+                            <i class="fas fa-search-location mr-2"></i> Parking Slots
+                        </h1>
+                        <button class="text-sm text-gray-600 hover:text-primary transition" onclick="renderPage('dashboard')">
+                            <i class="fas fa-arrow-left mr-1"></i> Back
+                        </button>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="flex flex-wrap gap-4 mb-6 text-sm font-medium">
+                        <span class="flex items-center text-success"><i class="fas fa-square mr-2"></i> Available (Click to Book)</span>
+                        <span class="flex items-center text-danger"><i class="fas fa-square mr-2"></i> Occupied</span>
+                    </div>
+
+                    <div id="slots-container" class="grid slot-grid gap-4 p-4 bg-gray-50 rounded-lg">
+                        <!-- Slots will be loaded here by loadSlots() -->
+                        <div class="col-span-full text-center p-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Loading slots...
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getBookingsHtml() {
+            return `
+                <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h1 class="text-3xl font-extrabold text-success">
+                            <i class="fas fa-calendar-alt mr-2"></i> My Active Bookings
+                        </h1>
+                        <button class="text-sm text-gray-600 hover:text-primary transition" onclick="renderPage('dashboard')">
+                            <i class="fas fa-arrow-left mr-1"></i> Back
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Booking ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slot Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookings-list" class="bg-white divide-y divide-gray-200">
+                                <!-- Bookings will be loaded here by loadMyBookings() -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- JavaScript Logic ---
+
+        /** Toggles between Login and Register modes */
+        function toggleAuth(isLogin) {
+            localStorage.setItem('isRegisterMode', isLogin ? 'false' : 'true');
+            renderPage('login');
+        }
+
+        /** Handles Login and Register form submission (simulated) */
+        async function handleAuth(event, isRegisterMode) {
+            event.preventDefault();
+            const form = event.target;
+            const username = form.username.value.trim();
+
+            if (!username) {
+                return showMessage("Please enter a username.", false);
+            }
+
+            if (isRegisterMode) {
+                await showMessage(`Registration successful for **${username}**! You can now log in.`, false);
+                localStorage.setItem('isRegisterMode', 'false');
+                renderPage('login');
+            } else {
+                localStorage.setItem(STORAGE_KEY, username);
+                await showMessage(`Login successful! Welcome, **${username}**!`, false);
+                renderPage('dashboard');
+            }
+        }
+
+        /** Clears session and returns to login */
+        function logout() {
+            showMessage("Are you sure you want to log out?", true).then(confirmed => {
+                if (confirmed) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    renderPage('login');
+                }
+            });
+        }
+
+        /** Renders the parking slots visualization */
+        function loadSlots() {
+            const container = document.getElementById("slots-container");
+            if (!container) return;
+            
+            // Generate HTML for slots
+            const slotsHtml = parkingSlots.map(slot => {
+                const statusClass = slot.isAvailable ? 'bg-success hover:bg-green-700 cursor-pointer' : 'bg-danger cursor-not-allowed opacity-60';
+                const clickHandler = slot.isAvailable ? `onclick="bookSlot(${slot.id}, '${slot.name}')"` : '';
+                
+                return `
+                    <div class="slot p-4 text-center rounded-lg shadow-md text-white font-semibold transition transform hover:scale-105 duration-200 ${statusClass}" ${clickHandler}>
+                        <i class="fas fa-parking fa-2x mb-1"></i>
+                        <div class="text-lg">${slot.name}</div>
+                        <small>${slot.isAvailable ? 'Available' : 'Occupied'}</small>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = slotsHtml || '<div class="col-span-full text-center p-8 text-gray-500"><i class="fas fa-exclamation-circle mr-2"></i> No parking slots found.</div>';
+        }
+
+        /** Handles slot booking (simulated) */
+        async function bookSlot(slotId, slotName) {
+            const confirmed = await showMessage(`Do you want to book Slot **${slotName}**?`, true);
+            
+            if (confirmed) {
+                // Find slot and simulate update
+                const slotIndex = parkingSlots.findIndex(s => s.id === slotId);
+                if (slotIndex !== -1 && parkingSlots[slotIndex].isAvailable) {
+                    parkingSlots[slotIndex].isAvailable = false;
+                    
+                    // Simulate booking creation
+                    const bookingId = Math.floor(Math.random() * 1000) + 200;
+                    userBookings.push({
+                        id: bookingId,
+                        slotId: slotId,
+                        slotName: slotName,
+                        startTime: new Date().toISOString()
+                    });
+
+                    showMessage(`Slot **${slotName}** (Booking #${bookingId}) booked successfully!`, false);
+                    loadSlots(); // Refresh view
+                } else {
+                    showMessage("Error: This slot is no longer available.", false);
+                }
+            }
+        }
+
+        /** Renders the user's bookings list */
+        function loadMyBookings() {
+            const container = document.getElementById("bookings-list");
+            if (!container) return;
+            
+            container.innerHTML = ''; // Clear existing content
+
+            if (userBookings.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-gray-500"><i class="fas fa-info-circle mr-2"></i> You have no active bookings.</td></tr>';
+                return;
+            }
+
+            userBookings.forEach(booking => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+
+                const formattedTime = new Date(booking.startTime).toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: true
+                });
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${booking.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <i class="fas fa-parking mr-2 text-primary"></i> ${booking.slotName}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedTime}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="px-3 py-1 bg-danger text-white rounded-lg text-xs font-bold hover:bg-red-700 transition" 
+                            onclick="cancelBooking(${booking.id}, '${booking.slotName}')">
+                            <i class="fas fa-times mr-1"></i> Cancel
+                        </button>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        /** Handles booking cancellation (simulated) */
+        async function cancelBooking(bookingId, slotName) {
+            const confirmed = await showMessage(`Are you sure you want to cancel booking **#${bookingId}** for slot **${slotName}**?`, true);
+
+            if (confirmed) {
+                const bookingIndex = userBookings.findIndex(b => b.id === bookingId);
+                
+                if (bookingIndex !== -1) {
+                    // 1. Simulate freeing the parking slot
+                    const slotIndex = parkingSlots.findIndex(s => s.name === slotName);
+                    if (slotIndex !== -1) {
+                        parkingSlots[slotIndex].isAvailable = true;
+                    }
+                    
+                    // 2. Remove the booking
+                    userBookings.splice(bookingIndex, 1);
+                    
+                    showMessage(`Booking **#${bookingId}** cancelled. Slot **${slotName}** is now available.`, false);
+                    loadMyBookings(); // Refresh view
+                }
+            }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const username = localStorage.getItem(STORAGE_KEY);
+            if (username) {
+                renderPage('dashboard');
+            } else {
+                renderPage('login');
+            }
+        });
+    </script>
+</body>
+</html>

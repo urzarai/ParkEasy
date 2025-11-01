@@ -1,0 +1,99 @@
+<!DOCTYPE html> <!--Login / Register user -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Smart Parking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { 'primary': '#3b82f6', 'success': '#10b981', 'danger': '#ef4444' } } }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center font-sans">
+    <div id="app" class="w-full max-w-md p-4">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl mx-auto">
+            <h2 class="text-3xl font-extrabold text-center mb-6 text-primary border-b pb-4">
+                <i class="fas fa-parking mr-2"></i> Smart Parking
+            </h2>
+            
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-200">
+                <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="authTab" role="tablist">
+                    <li class="me-2" role="presentation">
+                        <button class="inline-block p-4 border-b-2 rounded-t-lg text-primary border-primary" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab" aria-selected="true">Login</button>
+                    </li>
+                    <li class="me-2" role="presentation">
+                        <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-pane" type="button" role="tab" aria-selected="false">Register</button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="pt-6" id="authTabContent">
+                <!-- Login Form -->
+                <div id="login-pane" role="tabpanel">
+                    <form onsubmit="handleLogin(event)">
+                        <div class="mb-4">
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition" id="username" name="username" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition shadow-md shadow-blue-300">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Register Form (Hidden by default, simple visibility toggle here) -->
+                <div id="register-pane" class="hidden" role="tabpanel">
+                    <form onsubmit="handleRegister(event)">
+                        <div class="mb-4">
+                            <label for="reg_username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-success focus:border-success transition" id="reg_username" name="reg_username" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="reg_password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-success focus:border-success transition" id="reg_password" name="reg_password" required>
+                        </div>
+                         <button type="submit" class="w-full bg-success text-white p-3 rounded-lg font-bold hover:bg-green-600 transition shadow-md shadow-green-300">
+                            <i class="fas fa-user-plus mr-2"></i> Register
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script to handle tab switching (manual JS for Tailwind UI) -->
+    <script>
+        const tabs = document.querySelectorAll('#authTab button');
+        const panes = {
+            'login-tab': 'login-pane',
+            'register-tab': 'register-pane'
+        };
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active classes from all tabs and hide all panes
+                tabs.forEach(t => t.classList.remove('text-primary', 'border-primary', 'border-transparent', 'hover:text-gray-600', 'hover:border-gray-300'));
+                tabs.forEach(t => t.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300'));
+                document.getElementById('login-pane').classList.add('hidden');
+                document.getElementById('register-pane').classList.add('hidden');
+
+                // Add active classes to clicked tab and show corresponding pane
+                tab.classList.remove('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+                tab.classList.add('text-primary', 'border-primary');
+                document.getElementById(panes[tab.id]).classList.remove('hidden');
+            });
+        });
+    </script>
+    <script src="../script.js"></script>
+</body>
+</html>

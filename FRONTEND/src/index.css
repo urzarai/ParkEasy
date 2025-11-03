@@ -1,0 +1,368 @@
+/* General Styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #f7f8fa;
+  color: #222;
+  min-height: 100vh;
+  box-sizing: border-box;
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+}
+
+/* Utility Buttons */
+.btn {
+  display: inline-block;
+  cursor: pointer;
+  padding: 10px 22px;
+  margin: 8px 0;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.2s;
+  min-width: 100px;
+  text-align: center;
+}
+.btn:hover {
+  background-color: #2563eb;
+}
+
+button.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 28px;
+  z-index: 10;
+  background-color: #ef4444;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 22px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button.close-btn:hover {
+  background-color: #b91c1c;
+}
+
+/* Container Styling */
+.landing-container,
+.auth-page,
+.dashboard-container {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 36px;
+  box-sizing: border-box;
+}
+
+.dashboard-container > header,
+.landing-container > h1,
+.auth-page > .form {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Heading Alignment */
+.dashboard-container > header {
+  flex-direction: row;
+  justify-content: space-between;
+  max-width: 800px;
+  margin: 0 auto 40px auto;
+}
+.dashboard-container > header h1 {
+  font-size: 2.6rem;
+  margin: 0 0 0 40px;
+}
+
+/* Main Titles */
+h1, h2, h3 {
+  margin: 12px 0 20px 0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+h2 {
+  font-size: 2rem;
+  text-align: center;
+}
+
+.dashboard-container h2 {
+  width: 100%;
+  text-align: center;
+  margin-top: 0;
+}
+
+/* Logout Button */
+.btn.logout {
+  background-color: #ef4444;
+  margin-right: 40px;
+  min-width: 90px;
+}
+.btn.logout:hover {
+  background-color: #b91c1c;
+}
+
+/* Form Styling */
+.form {
+  background: #fff;
+  width: 370px;
+  max-width: 97vw;
+  padding: 38px 28px 30px 28px;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(40, 51, 90, 0.11);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 60px auto 0 auto;
+}
+
+/* Restrict max width on large screens, center the form */
+@media (min-width: 1000px) {
+  .form {
+    width: 370px !important;
+    margin: 100px auto;
+  }
+}
+
+@media (max-width: 499px) {
+  .form {
+    width: 95vw !important;
+    padding: 30px 5vw;
+  }
+}
+
+.form label {
+  display: block;
+  margin-bottom: 5px;
+  margin-top: 20px;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.form input, .form select {
+  width: 100%;
+  padding: 12px 10px;
+  margin-bottom: 2px;
+  border: 1px solid #d2d6dc;
+  border-radius: 7px;
+  font-size: 1rem;
+  outline: none;
+  box-sizing: border-box;
+  background: #f7fafc;
+}
+
+/* Table Styling */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+.table th, .table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 1rem;
+}
+.table th {
+  background: #f1f5f9;
+  font-weight: 700;
+  text-align: left;
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Error and Success Messages */
+.error {
+  color: #b91c1c;
+  margin-top: 8px;
+}
+.success {
+  color: #059669;
+  margin-top: 8px;
+}
+
+/* Card Styles */
+.card {
+  background: #fff;
+  padding: 26px 16px;
+  border-radius: 16px;
+  margin: 18px;
+  box-shadow: 0 0.5px 6px rgba(25,50,90,0.07);
+  cursor: pointer;
+  transition: box-shadow 0.22s, transform 0.2s;
+}
+.card:hover {
+  box-shadow: 0 6px 22px rgba(0,44,100,0.13);
+  transform: translateY(-4px) scale(1.03);
+}
+
+.building-list {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+  gap: 26px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 42px;
+}
+
+.building-card {
+  min-width: 240px;
+  min-height: 135px;
+  text-align: center;
+}
+
+/* Dialog/Modal Styling */
+.dialog-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.16);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.dialog {
+  position: relative;
+  background: #fff;
+  padding: 38px 34px 36px 34px;
+  border-radius: 22px;
+  width: 400px;
+  min-height: 220px;
+  max-width: 96vw;
+  max-height: 89vh;
+  box-shadow: 0 12px 28px rgba(60, 80, 150, 0.17);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Slightly reduce heading size so button fits comfortably */
+.dialog h2 {
+  font-size: 2rem;
+  line-height: 2.35rem;
+  margin-bottom: 28px;
+  margin-top: 10px;
+  text-align: center;
+  word-break: break-word;
+  padding-right: 50px;
+}
+
+.reserve-dialog input[type="time"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 7px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+.reserve-dialog form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.spot-list {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  justify-content: center;
+}
+
+.spot-card {
+  min-width: 350px;
+  max-width: 430px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0 auto;
+}
+.spot-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 1.18rem;
+}
+
+/* Reservations in spot card: horizontal flex */
+.spot-card ul {
+  padding: 0;
+  margin: 0 0 10px 0;
+  list-style: none;
+  width: 100%;
+}
+.spot-card li {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 32px;
+  font-size: 1.05rem;
+  margin-bottom: 7px;
+}
+
+.spot-card li span.resv-user {
+  min-width: 90px;
+  font-weight: 600;
+  color: #234090;
+  margin-right: 12px;
+}
+.spot-card li span.resv-time {
+  flex: 1;
+  color: #32516b;
+}
+
+.btn.reserve-btn {
+  margin-top: 12px;
+  align-self: flex-end;
+  min-width: 130px;
+}
+
+@media (max-width: 800px) {
+  .building-list, .spot-list {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+  .form, .dialog {
+    width: 97vw !important;
+    min-width: unset;
+    box-sizing: border-box;
+    padding: 20px 5vw 30px 5vw;
+  }
+  .dashboard-container > header h1 {
+    font-size: 1.7rem;
+    margin-left: 0;
+  }
+  .dashboard-container > header {
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 22px;
+  }
+  .dialog h2 {
+    font-size: 1.35rem;
+    padding-right: 0;
+  }
+  button.close-btn {
+    right: 10px;
+    top: 12px;
+    padding: 4px 12px;
+    font-size: 1rem;
+  }
+}

@@ -1,4 +1,18 @@
 {
+  "name": "parkeasy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install": "cd BACKEND && npm install && cd ../FRONTEND && npm install",
+    "dev": "cd BACKEND && npm run dev",
+    "start": "cd BACKEND && npm start",
+    "frontend:dev": "cd FRONTEND && npm run dev",
+    "frontend:build": "cd FRONTEND && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "lucide-react": "^0.552.0"
   }

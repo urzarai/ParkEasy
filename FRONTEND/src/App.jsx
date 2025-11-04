@@ -6,6 +6,8 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import BuildingManagement from "./pages/BuildingManagement.jsx";
 import SpotManagement from "./pages/SpotManagement.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+import ThemeToggle from "./components/ThemeToggle.jsx";
 
 function PrivateRoute({ children, roles }) {
   const { user } = useAuth();
@@ -20,9 +22,12 @@ function PrivateRoute({ children, roles }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          {/* Theme toggle visible on every page (top-right) */}
+          <ThemeToggle />
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<Auth />} />
           <Route
@@ -59,8 +64,9 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

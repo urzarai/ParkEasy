@@ -1,0 +1,108 @@
+/* Dark mode overrides */
+html.dark {
+  background-color: #071028;
+  color: #e6eef8;
+}
+
+html.dark body {
+  background-color: #071028;
+  color: #e6eef8;
+}
+
+/* Dark mode - Landing page */
+html.dark .landing-container {
+  background: linear-gradient(to bottom, #071028, #0a1832);
+}
+
+html.dark .landing-container h1 {
+  color: #e6eef8;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Dark mode - Forms and Cards */
+html.dark .form,
+html.dark .card,
+html.dark .table,
+html.dark .dialog {
+  background: #0a1832;
+  color: #e6eef8;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+}
+
+html.dark .form input, 
+html.dark .form select, 
+html.dark .reserve-dialog input[type="time"] {
+  background: #071028;
+  color: #e6eef8;
+  border: 1px solid #1e3a5f;
+}
+
+html.dark .form input:focus, 
+html.dark .form select:focus, 
+html.dark .reserve-dialog input[type="time"]:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Dark mode - Table */
+html.dark .table th {
+  background: #0d1f3a;
+  color: #e6eef8;
+}
+
+html.dark .table td {
+  border-color: #1e3a5f;
+}
+
+/* Dark mode - Buttons */
+html.dark .btn { 
+  background-color: #2563eb; 
+  color: white;
+}
+
+html.dark .btn:hover {
+  background-color: #1d4ed8;
+}
+
+html.dark .btn.logout { 
+  background-color: #dc2626;
+}
+
+html.dark .btn.logout:hover {
+  background-color: #b91c1c;
+}
+
+html.dark button.close-btn { 
+  background-color: #dc2626;
+  color: #fff;
+}
+
+/* Dark mode - Theme Toggle */
+html.dark .theme-toggle {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  color: #e6eef8;
+}
+
+/* Dark mode - Dialog Overlay */
+html.dark .dialog-overlay {
+  background-color: rgba(0,0,0,0.4);
+}
+
+/* Dark mode - Spot Card Specific */
+html.dark .spot-card li span.resv-user {
+  color: #60a5fa;
+}
+
+html.dark .spot-card li span.resv-time {
+  color: #94a3b8;
+}
+
+/* Dark mode - Success/Error messages */
+html.dark .error {
+  color: #f87171;
+}
+
+html.dark .success {
+  color: #34d399;
+}

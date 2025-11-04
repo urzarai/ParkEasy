@@ -10,6 +10,15 @@ dotenv.config({ path: envPath });
 import nodemailer from "nodemailer";
 
 async function run() {
+  // debug: print loaded SMTP env vars (don't print password in real logs)
+  console.log('Loaded SMTP settings:', {
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_SECURE: process.env.SMTP_SECURE,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_FROM: process.env.SMTP_FROM,
+  });
+
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
@@ -22,7 +31,7 @@ async function run() {
 
   const info = await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to: "your-personal-test-email@domain.com",
+    to: "mohakbiswas1@gmail.com",
     subject: "ParkEasy test — Gmail SMTP",
     text: "Hello — this is a test from ParkEasy using Gmail SMTP.",
     html: "<p>Hello — this is a <b>test</b> from ParkEasy using Gmail SMTP.</p>",

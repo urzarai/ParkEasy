@@ -25,11 +25,13 @@ export const reserveSpot = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("name email");
     if (user && user.email) {
+      console.log(`Attempting to send reservation email to ${user.email}`);
       const subject = `Parking reservation confirmed - Spot ${spot.spotNumber || spot._id}`;
       const text = `Hi ${user.name || "User"},\n\nYour parking spot has been reserved successfully.\n\nDetails:\nSpot: ${spot.spotNumber || spot._id}\nFrom: ${from}\nTo: ${to}\n\nThanks,\nParkEasy`;
       const html = `<p>Hi ${user.name || "User"},</p><p>Your parking spot has been reserved successfully.</p><ul><li><strong>Spot:</strong> ${spot.spotNumber || spot._id}</li><li><strong>From:</strong> ${from}</li><li><strong>To:</strong> ${to}</li></ul><p>Thanks,<br/>ParkEasy</p>`;
 
-      await sendMail({ to: user.email, subject, text, html });
+      const info = await sendMail({ to: user.email, subject, text, html });
+      console.log("sendMail result:", info && info.messageId ? info.messageId : info);
     }
   } catch (err) {
     // log and continue - don't fail reservation if email sending fails

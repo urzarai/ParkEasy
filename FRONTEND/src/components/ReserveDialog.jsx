@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../utils/api.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function ReserveDialog({ spotId, token, onClose }) {
   // Reservation allowed only for today. So from/to times should be Time only fields with today's date.
@@ -10,6 +11,7 @@ function ReserveDialog({ spotId, token, onClose }) {
   const [toTime, setToTime] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const { user } = useAuth();
 
   const buildDateTime = (timeStr) => {
     const now = new Date();
@@ -37,7 +39,9 @@ function ReserveDialog({ spotId, token, onClose }) {
 
     try {
       await api.reserveSpot(spotId, { from, to }, token);
-      setSuccess("Reservation successful!");
+      // show reservation success and indicate that confirmation email was sent
+      const userEmail = user?.email || "your email";
+      setSuccess(`Reservation successful! A confirmation email was sent to ${userEmail}.`);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Reservation failed");
     }

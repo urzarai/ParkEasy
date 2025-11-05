@@ -1,18 +1,20 @@
 services:
+  # Backend API service
   - type: web
     name: parkeasy-backend
-    env: node
-    buildCommand: npm install && cd FRONTEND && npm run build
+    runtime: node
+    rootDir: BACKEND
+    buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 5000
+        value: 10000  # Render's default port
       - key: MONGO_URI
-        sync: false # Add value in Render dashboard
+        sync: false # Add MongoDB Atlas URI in dashboard
       - key: JWT_SECRET
-        generateValue: true
+        generateValue: true # Auto-generates a secure value
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: SMTP_HOST
@@ -22,8 +24,25 @@ services:
       - key: SMTP_SECURE
         value: "false"
       - key: SMTP_USER
-        sync: false # Add value in Render dashboard
+        sync: false # Add Gmail address in dashboard
       - key: SMTP_PASS
-        sync: false # Add value in Render dashboard
+        sync: false # Add Gmail App Password in dashboard
       - key: SMTP_FROM
-        value: "ParkEasy <no-reply@yourdomain.com>"
+        sync: false # Add in format: "ParkEasy <your-gmail>"
+    healthCheckPath: /
+    autoDeploy: true
+
+  # Frontend as static site
+  - type: web  # Using web type for static content
+    name: parkeasy-frontend
+    runtime: static
+    rootDir: FRONTEND
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    staticPublishPath: ./dist  # Directory containing built frontend
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: parkeasy-backend
+          property: url # Auto-links to backend URL
+    autoDeploy: true
